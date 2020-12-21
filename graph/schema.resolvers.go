@@ -5,23 +5,21 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/nhe23/aq-api/graph/generated"
 	"github.com/nhe23/aq-api/graph/model"
 )
 
 func (r *queryResolver) LocationResults(ctx context.Context, take *int, after *string) ([]*model.LocationResult, error) {
-	fmt.Println("inside resolver")
 	return r.LocResultsService.GetResults(take, after)
 }
 
 func (r *queryResolver) Countries(ctx context.Context) ([]*model.Country, error) {
-	panic(fmt.Errorf("not implemented"))
+	return r.CountriesSerivce.GetCountries()
 }
 
-func (r *queryResolver) Cities(ctx context.Context) ([]*model.City, error) {
-	panic(fmt.Errorf("not implemented"))
+func (r *queryResolver) Cities(ctx context.Context, take *int, after *string) ([]*model.City, error) {
+	return r.CitiesService.GetCities(take, after)
 }
 
 // Query returns generated.QueryResolver implementation.

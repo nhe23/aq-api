@@ -47,8 +47,13 @@ func main() {
 	aqdb.SetCollections(&cols)
 
 	locResService := services.NewLocResService()
+	citiesService := services.NewCitiesService()
+	countriesService := services.NewCountriesService()
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{
-		Resolvers: &graph.Resolver{LocResultsService: locResService}}))
+		Resolvers: &graph.Resolver{
+			LocResultsService: locResService,
+			CitiesService:     citiesService,
+			CountriesSerivce:  countriesService}}))
 
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)

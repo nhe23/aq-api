@@ -1,8 +1,6 @@
 package services
 
 import (
-	"fmt"
-
 	aqdb "github.com/nhe23/aq-api/db"
 	"github.com/nhe23/aq-api/graph/model"
 )
@@ -19,6 +17,5 @@ func NewLocResService() LocResService {
 }
 
 func (s locResService) GetResults(take *int, after *string) ([]*model.LocationResult, error) {
-	fmt.Println("Inside service")
-	return aqdb.LocationResults(take, after), nil
+	return aqdb.LocationResults(take, after)
 }

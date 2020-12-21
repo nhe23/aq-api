@@ -9,4 +9,6 @@ import "github.com/nhe23/aq-api/services"
 //Resolver contains services that are injected into the schema reolver
 type Resolver struct {
 	LocResultsService services.LocResService
+	CitiesService     services.CitiesSerivce
+	CountriesSerivce  services.CountriesSerivce
 }
