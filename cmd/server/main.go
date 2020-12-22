@@ -14,25 +14,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/nhe23/aq-api/services"
-
-	aqdb "github.com/nhe23/aq-api/db"
+	"github.com/nhe23/aq-api/pkg/services"
 )
 
 const defaultPort = "8080"
 
-func initDb(dbURI string, dbName string) (aqdb.Collections, error) {
-	var cols aqdb.Collections
-	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(dbURI))
-	if err != nil {
-		return cols, err
-	}
-	db := client.Database(dbName)
-	cols.CountriesCol = db.Collection("countries")
-	cols.CitiesCol = db.Collection("cities")
-	cols.MeasurementsCol = db.Collection("measurements")
-	return cols, nil
-}
+// func initDb(dbURI string, dbName string) (db.Collections, error) {
+// 	var cols db.Collections
+// }
 
 func main() {
 	port := os.Getenv("PORT")
@@ -40,15 +29,15 @@ func main() {
 		port = defaultPort
 	}
 
-	cols, err := initDb("mongodb://localhost:27018", "AQ_DB")
+	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI("mongodb://localhost:27018"))
 	if err != nil {
-		log.Fatalf("Error initializing collections: %w", err)
+		log.Fatal("Could not connect db")
 	}
-	aqdb.SetCollections(&cols)
+	db := client.Database("AQ_DB")
 
-	locResService := services.NewLocResService()
-	citiesService := services.NewCitiesService()
-	countriesService := services.NewCountriesService()
+	locResService := services.NewLocResService(db.Collection("measurements"))
+	citiesService := services.NewCitiesService(db.Collection("cities"))
+	countriesService := services.NewCountriesService(db.Collection("countries"))
 	srv := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{
 		Resolvers: &graph.Resolver{
 			LocResultsService: locResService,

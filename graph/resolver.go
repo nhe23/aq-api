@@ -1,6 +1,6 @@
 package graph
 
-import "github.com/nhe23/aq-api/services"
+import "github.com/nhe23/aq-api/pkg/services"
 
 // This file will not be regenerated automatically.
 //
