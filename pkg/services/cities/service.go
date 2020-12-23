@@ -1,4 +1,4 @@
-package services
+package cities
 
 import (
 	"context"
@@ -9,22 +9,22 @@ import (
 	dbacc "github.com/nhe23/aq-api/pkg/db/db-access"
 )
 
-// CitiesSerivce interface registering all methods
-type CitiesSerivce interface {
+// Service interface registering all methods
+type Service interface {
 	GetCities(take *int, after *string) ([]*model.City, error)
 }
 
-type citiesService struct {
+type service struct {
 	col dbacc.DataAccess
 }
 
-// NewCitiesService returns new instace of CitiesSerivce
-func NewCitiesService(col dbacc.DataAccess) CitiesSerivce {
-	return citiesService{col}
+// NewService returns new instace of Service
+func NewService(col dbacc.DataAccess) Service {
+	return service{col}
 }
 
 // GetCities returns paginated result of cities
-func (s citiesService) GetCities(take *int, after *string) ([]*model.City, error) {
+func (s service) GetCities(take *int, after *string) ([]*model.City, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	cur, err := db.GetPaginatedResult(ctx, s.col, take, after)

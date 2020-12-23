@@ -1,4 +1,4 @@
-package services
+package countries
 
 import (
 	"context"
@@ -9,22 +9,22 @@ import (
 	dbacc "github.com/nhe23/aq-api/pkg/db/db-access"
 )
 
-// CountriesSerivce interface registering all methods
-type CountriesSerivce interface {
+// Service interface registering all methods
+type Service interface {
 	GetCountries() ([]*model.Country, error)
 }
 
-type countriesService struct {
+type service struct {
 	col dbacc.DataAccess
 }
 
-// NewCountriesService returns CountriesService instance
-func NewCountriesService(col dbacc.DataAccess) CountriesSerivce {
-	return countriesService{col}
+// NewService returns CountriesService instance
+func NewService(col dbacc.DataAccess) Service {
+	return service{col}
 }
 
 // GetCountries returns paginated country results
-func (s countriesService) GetCountries() ([]*model.Country, error) {
+func (s service) GetCountries() ([]*model.Country, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	cur, err := db.GetPaginatedResult(ctx, s.col, nil, nil)

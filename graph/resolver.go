@@ -1,6 +1,10 @@
 package graph
 
-import "github.com/nhe23/aq-api/pkg/services"
+import (
+	"github.com/nhe23/aq-api/pkg/services/cities"
+	"github.com/nhe23/aq-api/pkg/services/countries"
+	"github.com/nhe23/aq-api/pkg/services/measurements"
+)
 
 // This file will not be regenerated automatically.
 //
@@ -8,7 +12,7 @@ import "github.com/nhe23/aq-api/pkg/services"
 
 //Resolver contains services that are injected into the schema reolver
 type Resolver struct {
-	LocResultsService services.LocResService
-	CitiesService     services.CitiesSerivce
-	CountriesSerivce  services.CountriesSerivce
+	LocResultsService measurements.Service
+	CitiesService     cities.Service
+	CountriesSerivce  countries.Service
 }

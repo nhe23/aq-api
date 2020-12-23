@@ -1,4 +1,4 @@
-package services
+package measurements
 
 import (
 	"reflect"
@@ -9,31 +9,38 @@ import (
 	dbacc "github.com/nhe23/aq-api/pkg/db/db-access"
 )
 
-func Test_countriesService_GetCountries(t *testing.T) {
+func Test_locResService_GetResults(t *testing.T) {
 	mockCol := mocks.NewMockDataAccess()
+	take := 5
+	after := "mock"
 	type fields struct {
 		col dbacc.DataAccess
+	}
+	type args struct {
+		take  *int
+		after *string
 	}
 	tests := []struct {
 		name    string
 		fields  fields
-		want    []*model.Country
+		args    args
+		want    []*model.LocationResult
 		wantErr bool
 	}{
-		{"standard", fields{mockCol}, nil, false},
+		{"standard", fields{mockCol}, args{&take, &after}, nil, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := countriesService{
+			s := service{
 				col: tt.fields.col,
 			}
-			got, err := s.GetCountries()
+			got, err := s.GetResults(tt.args.take, tt.args.after)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("countriesService.GetCountries() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("locResService.GetResults() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("countriesService.GetCountries() = %v, want %v", got, tt.want)
+				t.Errorf("locResService.GetResults() = %v, want %v", got, tt.want)
 			}
 		})
 	}

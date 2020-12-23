@@ -1,15 +1,16 @@
-package services
+package cities
 
 import (
 	"reflect"
 	"testing"
 
 	"github.com/nhe23/aq-api/graph/model"
-	"github.com/nhe23/aq-api/mocks"
 	dbacc "github.com/nhe23/aq-api/pkg/db/db-access"
+
+	"github.com/nhe23/aq-api/mocks"
 )
 
-func Test_locResService_GetResults(t *testing.T) {
+func Test_citiesService_GetCities(t *testing.T) {
 	mockCol := mocks.NewMockDataAccess()
 	take := 5
 	after := "mock"
@@ -24,23 +25,23 @@ func Test_locResService_GetResults(t *testing.T) {
 		name    string
 		fields  fields
 		args    args
-		want    []*model.LocationResult
+		want    []*model.City
 		wantErr bool
 	}{
 		{"standard", fields{mockCol}, args{&take, &after}, nil, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := locResService{
+			s := service{
 				col: tt.fields.col,
 			}
-			got, err := s.GetResults(tt.args.take, tt.args.after)
+			got, err := s.GetCities(tt.args.take, tt.args.after)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("locResService.GetResults() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("service.GetCities() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("locResService.GetResults() = %v, want %v", got, tt.want)
+				t.Errorf("service.GetCities() = %v, want %v", got, tt.want)
 			}
 		})
 	}
