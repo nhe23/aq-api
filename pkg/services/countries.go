@@ -23,6 +23,7 @@ func NewCountriesService(col dbacc.DataAccess) CountriesSerivce {
 	return countriesService{col}
 }
 
+// GetCountries returns paginated country results
 func (s countriesService) GetCountries() ([]*model.Country, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()

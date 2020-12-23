@@ -5,12 +5,12 @@ import (
 	"testing"
 
 	"github.com/nhe23/aq-api/graph/model"
-	"github.com/nhe23/aq-api/mock"
+	"github.com/nhe23/aq-api/mocks"
 	dbacc "github.com/nhe23/aq-api/pkg/db/db-access"
 )
 
 func Test_locResService_GetResults(t *testing.T) {
-	mockCol := mock.NewMockDataAccess()
+	mockCol := mocks.NewMockDataAccess()
 	take := 5
 	after := "mock"
 	type fields struct {

@@ -9,11 +9,11 @@ import (
 
 	dbacc "github.com/nhe23/aq-api/pkg/db/db-access"
 
-	"github.com/nhe23/aq-api/mock"
+	"github.com/nhe23/aq-api/mocks"
 )
 
 func TestGetPaginatedResult(t *testing.T) {
-	dataAccess := mock.NewMockDataAccess()
+	dataAccess := mocks.NewMockDataAccess()
 	ctx := context.TODO()
 	nilCursor := &mongo.Cursor{}
 	take := 5

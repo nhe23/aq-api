@@ -7,11 +7,11 @@ import (
 	"github.com/nhe23/aq-api/graph/model"
 	dbacc "github.com/nhe23/aq-api/pkg/db/db-access"
 
-	"github.com/nhe23/aq-api/mock"
+	"github.com/nhe23/aq-api/mocks"
 )
 
 func Test_citiesService_GetCities(t *testing.T) {
-	mockCol := mock.NewMockDataAccess()
+	mockCol := mocks.NewMockDataAccess()
 	take := 5
 	after := "mock"
 	type fields struct {

@@ -18,6 +18,7 @@ import (
 )
 
 const defaultPort = "8080"
+const defaultDb = "mongodb://localhost:27018"
 
 // func initDb(dbURI string, dbName string) (db.Collections, error) {
 // 	var cols db.Collections
@@ -25,11 +26,15 @@ const defaultPort = "8080"
 
 func main() {
 	port := os.Getenv("PORT")
+	dbURI := os.Getenv("mongodb")
 	if port == "" {
 		port = defaultPort
 	}
+	if dbURI == "" {
+		dbURI = defaultDb
+	}
 
-	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI("mongodb://localhost:27018"))
+	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(dbURI))
 	if err != nil {
 		log.Fatal("Could not connect db")
 	}
