@@ -2,6 +2,7 @@ package mocks
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 
 	"bou.ke/monkey"
@@ -33,12 +34,28 @@ type DataAccess interface {
 // NewMockDataAccess returns mocked db data access
 func NewMockDataAccess() DataAccess {
 	var c *mongo.Cursor
-	var guard *monkey.PatchGuard
-	guard = monkey.PatchInstanceMethod(reflect.TypeOf(c), "All",
+	var guardAll *monkey.PatchGuard
+	var guardNext *monkey.PatchGuard
+	var guardDecode *monkey.PatchGuard
+
+	guardAll = monkey.PatchInstanceMethod(reflect.TypeOf(c), "All",
 		func(c *mongo.Cursor, ctx context.Context, results interface{}) error {
-			guard.Unpatch()
+			fmt.Println("Patched All")
+			guardAll.Unpatch()
 			return nil
 		})
+	guardNext = monkey.PatchInstanceMethod(reflect.TypeOf(c), "Next",
+		func(c *mongo.Cursor, ctx context.Context) bool {
+			fmt.Println("Patched")
+			guardNext.Unpatch()
+			return false
+		})
+	guardDecode = monkey.PatchInstanceMethod(reflect.TypeOf(c), "Decode",
+		func(c *mongo.Cursor, val interface{}) error {
+			guardDecode.Unpatch()
+			return nil
+		})
+
 	return mockDataAccess{}
 }
 

@@ -27,7 +27,8 @@ func NewService(col dbacc.DataAccess) Service {
 func (s service) GetCities(take *int, after *string) ([]*model.City, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	cur, err := db.GetPaginatedResult(ctx, s.col, take, after)
+	filter := db.GetBasicPaginationFilter(after)
+	cur, err := db.GetFilteredResult(ctx, s.col, filter, take)
 	if err != nil {
 		return nil, err
 	}

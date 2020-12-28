@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -35,6 +36,7 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	LocationResult() LocationResultResolver
 	Query() QueryResolver
 }
 
@@ -81,14 +83,21 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		Cities          func(childComplexity int, take *int, after *string) int
-		Countries       func(childComplexity int) int
-		LocationResults func(childComplexity int, take *int, after *string) int
+		Cities                func(childComplexity int, take *int, after *string) int
+		Countries             func(childComplexity int) int
+		Measurements          func(childComplexity int, take *int, after *string) int
+		MeasurementsByCity    func(childComplexity int, city string, take *int, after *string) int
+		MeasurementsByCountry func(childComplexity int, country string, take *int, after *string) int
 	}
 }
 
+type LocationResultResolver interface {
+	Country(ctx context.Context, obj *model.LocationResult) (*model.Country, error)
+}
 type QueryResolver interface {
-	LocationResults(ctx context.Context, take *int, after *string) ([]*model.LocationResult, error)
+	Measurements(ctx context.Context, take *int, after *string) ([]*model.LocationResult, error)
+	MeasurementsByCountry(ctx context.Context, country string, take *int, after *string) ([]*model.LocationResult, error)
+	MeasurementsByCity(ctx context.Context, city string, take *int, after *string) ([]*model.LocationResult, error)
 	Countries(ctx context.Context) ([]*model.Country, error)
 	Cities(ctx context.Context, take *int, after *string) ([]*model.City, error)
 }
@@ -288,17 +297,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Countries(childComplexity), true
 
-	case "Query.locationResults":
-		if e.complexity.Query.LocationResults == nil {
+	case "Query.measurements":
+		if e.complexity.Query.Measurements == nil {
 			break
 		}
 
-		args, err := ec.field_Query_locationResults_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_measurements_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.LocationResults(childComplexity, args["take"].(*int), args["after"].(*string)), true
+		return e.complexity.Query.Measurements(childComplexity, args["take"].(*int), args["after"].(*string)), true
+
+	case "Query.measurementsByCity":
+		if e.complexity.Query.MeasurementsByCity == nil {
+			break
+		}
+
+		args, err := ec.field_Query_measurementsByCity_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MeasurementsByCity(childComplexity, args["city"].(string), args["take"].(*int), args["after"].(*string)), true
+
+	case "Query.measurementsByCountry":
+		if e.complexity.Query.MeasurementsByCountry == nil {
+			break
+		}
+
+		args, err := ec.field_Query_measurementsByCountry_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MeasurementsByCountry(childComplexity, args["country"].(string), args["take"].(*int), args["after"].(*string)), true
 
 	}
 	return 0, false
@@ -354,11 +387,22 @@ var sources = []*ast.Source{
 #
 # https://gqlgen.com/getting-started/
 
+scalar Time
+
+# type LocationResult {
+#   _id: String!
+#   location: String!
+#   city: String!
+#   country: String!
+#   measurements: [Measurement!]!
+#   coordinates: Coordinates!
+# }
+
 type LocationResult {
   _id: String!
   location: String!
   city: String!
-  country: String!
+  country: Country!
   measurements: [Measurement!]!
   coordinates: Coordinates!
 }
@@ -366,7 +410,7 @@ type LocationResult {
 type Measurement {
   parameter: String!
   value: Int!
-  lastUpdated: Float!
+  lastUpdated: Time!
   unit: String!
 }
 
@@ -393,7 +437,9 @@ type Country {
 }
 
 type Query {
-  locationResults(take:Int, after:String): [LocationResult!]!
+  measurements(take:Int, after:String): [LocationResult!]!
+  measurementsByCountry(country: String!, take:Int, after:String): [LocationResult!]!
+  measurementsByCity(city: String!, take:Int, after:String): [LocationResult!]!
   countries: [Country!]!
   cities(take:Int, after:String): [City!]!
 }
@@ -444,7 +490,73 @@ func (ec *executionContext) field_Query_cities_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_locationResults_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_measurementsByCity_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["city"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("city"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["city"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["take"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("take"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["take"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_measurementsByCountry_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["country"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("country"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["country"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["take"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("take"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["take"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["after"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("after"))
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_measurements_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *int
@@ -1077,14 +1189,14 @@ func (ec *executionContext) _LocationResult_country(ctx context.Context, field g
 		Object:     "LocationResult",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Country, nil
+		return ec.resolvers.LocationResult().Country(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1096,9 +1208,9 @@ func (ec *executionContext) _LocationResult_country(ctx context.Context, field g
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*model.Country)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNCountry2ᚖgithubᚗcomᚋnhe23ᚋaqᚑapiᚋgraphᚋmodelᚐCountry(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _LocationResult_measurements(ctx context.Context, field graphql.CollectedField, obj *model.LocationResult) (ret graphql.Marshaler) {
@@ -1271,9 +1383,9 @@ func (ec *executionContext) _Measurement_lastUpdated(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(float64)
+	res := resTmp.(time.Time)
 	fc.Result = res
-	return ec.marshalNFloat2float64(ctx, field.Selections, res)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Measurement_unit(ctx context.Context, field graphql.CollectedField, obj *model.Measurement) (ret graphql.Marshaler) {
@@ -1311,7 +1423,7 @@ func (ec *executionContext) _Measurement_unit(ctx context.Context, field graphql
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_locationResults(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_measurements(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -1328,7 +1440,7 @@ func (ec *executionContext) _Query_locationResults(ctx context.Context, field gr
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_locationResults_args(ctx, rawArgs)
+	args, err := ec.field_Query_measurements_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -1336,7 +1448,91 @@ func (ec *executionContext) _Query_locationResults(ctx context.Context, field gr
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().LocationResults(rctx, args["take"].(*int), args["after"].(*string))
+		return ec.resolvers.Query().Measurements(rctx, args["take"].(*int), args["after"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.LocationResult)
+	fc.Result = res
+	return ec.marshalNLocationResult2ᚕᚖgithubᚗcomᚋnhe23ᚋaqᚑapiᚋgraphᚋmodelᚐLocationResultᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_measurementsByCountry(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_measurementsByCountry_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().MeasurementsByCountry(rctx, args["country"].(string), args["take"].(*int), args["after"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.LocationResult)
+	fc.Result = res
+	return ec.marshalNLocationResult2ᚕᚖgithubᚗcomᚋnhe23ᚋaqᚑapiᚋgraphᚋmodelᚐLocationResultᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_measurementsByCity(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_measurementsByCity_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().MeasurementsByCity(rctx, args["city"].(string), args["take"].(*int), args["after"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2741,32 +2937,41 @@ func (ec *executionContext) _LocationResult(ctx context.Context, sel ast.Selecti
 		case "_id":
 			out.Values[i] = ec._LocationResult__id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "location":
 			out.Values[i] = ec._LocationResult_location(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "city":
 			out.Values[i] = ec._LocationResult_city(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "country":
-			out.Values[i] = ec._LocationResult_country(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._LocationResult_country(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "measurements":
 			out.Values[i] = ec._LocationResult_measurements(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "coordinates":
 			out.Values[i] = ec._LocationResult_coordinates(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -2836,7 +3041,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "locationResults":
+		case "measurements":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -2844,7 +3049,35 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_locationResults(ctx, field)
+				res = ec._Query_measurements(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "measurementsByCountry":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_measurementsByCountry(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "measurementsByCity":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_measurementsByCity(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -3210,6 +3443,10 @@ func (ec *executionContext) marshalNCoordinates2ᚖgithubᚗcomᚋnhe23ᚋaqᚑa
 	return ec._Coordinates(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNCountry2githubᚗcomᚋnhe23ᚋaqᚑapiᚋgraphᚋmodelᚐCountry(ctx context.Context, sel ast.SelectionSet, v model.Country) graphql.Marshaler {
+	return ec._Country(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNCountry2ᚕᚖgithubᚗcomᚋnhe23ᚋaqᚑapiᚋgraphᚋmodelᚐCountryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Country) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -3388,6 +3625,21 @@ func (ec *executionContext) unmarshalNString2string(ctx context.Context, v inter
 
 func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	res := graphql.MarshalString(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
+	res, err := graphql.UnmarshalTime(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	res := graphql.MarshalTime(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")

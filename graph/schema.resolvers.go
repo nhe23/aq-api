@@ -10,8 +10,20 @@ import (
 	"github.com/nhe23/aq-api/graph/model"
 )
 
-func (r *queryResolver) LocationResults(ctx context.Context, take *int, after *string) ([]*model.LocationResult, error) {
+func (r *locationResultResolver) Country(ctx context.Context, obj *model.LocationResult) (*model.Country, error) {
+	return r.DataLoader.For(ctx).CountryByCode.Load(obj.Country)
+}
+
+func (r *queryResolver) Measurements(ctx context.Context, take *int, after *string) ([]*model.LocationResult, error) {
 	return r.LocResultsService.GetResults(take, after)
+}
+
+func (r *queryResolver) MeasurementsByCountry(ctx context.Context, country string, take *int, after *string) ([]*model.LocationResult, error) {
+	return r.LocResultsService.GetResultsByCountry(country, take, after)
+}
+
+func (r *queryResolver) MeasurementsByCity(ctx context.Context, city string, take *int, after *string) ([]*model.LocationResult, error) {
+	return r.LocResultsService.GetResultsByCity(city, take, after)
 }
 
 func (r *queryResolver) Countries(ctx context.Context) ([]*model.Country, error) {
@@ -22,9 +34,15 @@ func (r *queryResolver) Cities(ctx context.Context, take *int, after *string) ([
 	return r.CitiesService.GetCities(take, after)
 }
 
+// LocationResult returns generated.LocationResultResolver implementation.
+func (r *Resolver) LocationResult() generated.LocationResultResolver {
+	return &locationResultResolver{r}
+}
+
 // Query returns generated.QueryResolver implementation.
 func (r *Resolver) Query() generated.QueryResolver { return &queryResolver{r} }
 
+type locationResultResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 
 // !!! WARNING !!!

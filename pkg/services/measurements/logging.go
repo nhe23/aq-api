@@ -29,3 +29,29 @@ func (s *loggingService) GetResults(take *int, after *string) (cities []*model.L
 	}(time.Now())
 	return s.Service.GetResults(take, after)
 }
+
+func (s *loggingService) GetResultsByCity(city string, take *int, after *string) (cities []*model.LocationResult, err error) {
+	defer func(begin time.Time) {
+		s.logger.Log(
+			"method", "GetResultsByCity",
+			"take", take,
+			"after", after,
+			"took", time.Since(begin),
+			"err", err,
+		)
+	}(time.Now())
+	return s.Service.GetResultsByCity(city, take, after)
+}
+
+func (s *loggingService) GetResultsByCountry(country string, take *int, after *string) (cities []*model.LocationResult, err error) {
+	defer func(begin time.Time) {
+		s.logger.Log(
+			"method", "GetResultsByCity",
+			"take", take,
+			"after", after,
+			"took", time.Since(begin),
+			"err", err,
+		)
+	}(time.Now())
+	return s.Service.GetResultsByCountry(country, take, after)
+}

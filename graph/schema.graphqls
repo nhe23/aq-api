@@ -2,11 +2,22 @@
 #
 # https://gqlgen.com/getting-started/
 
+scalar Time
+
+# type LocationResult {
+#   _id: String!
+#   location: String!
+#   city: String!
+#   country: String!
+#   measurements: [Measurement!]!
+#   coordinates: Coordinates!
+# }
+
 type LocationResult {
   _id: String!
   location: String!
   city: String!
-  country: String!
+  country: Country!
   measurements: [Measurement!]!
   coordinates: Coordinates!
 }
@@ -14,7 +25,7 @@ type LocationResult {
 type Measurement {
   parameter: String!
   value: Int!
-  lastUpdated: Float!
+  lastUpdated: Time!
   unit: String!
 }
 
@@ -41,7 +52,9 @@ type Country {
 }
 
 type Query {
-  locationResults(take:Int, after:String): [LocationResult!]!
+  measurements(take:Int, after:String): [LocationResult!]!
+  measurementsByCountry(country: String!, take:Int, after:String): [LocationResult!]!
+  measurementsByCity(city: String!, take:Int, after:String): [LocationResult!]!
   countries: [Country!]!
   cities(take:Int, after:String): [City!]!
 }

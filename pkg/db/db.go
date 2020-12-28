@@ -36,3 +36,24 @@ func GetPaginatedResult(ctx context.Context, col dbacc.DataAccess, take *int, af
 	cur, err := col.Find(ctx, filter, options)
 	return cur, err
 }
+
+// GetFilteredResult returns collection cursor for given filter
+func GetFilteredResult(ctx context.Context, col dbacc.DataAccess, filter primitive.M, limit *int) (*mongo.Cursor, error) {
+	options := options.Find()
+	if limit != nil {
+		options.SetLimit(int64(*limit))
+	}
+	cur, err := col.Find(ctx, filter, options)
+	return cur, err
+}
+
+func GetBasicPaginationFilter(after *string) primitive.M {
+	var filter primitive.M
+	if after != nil {
+		docID, _ := primitive.ObjectIDFromHex(*after)
+		filter = bson.M{"_id": bson.M{"$gt": docID}}
+	} else {
+		filter = bson.M{}
+	}
+	return filter
+}

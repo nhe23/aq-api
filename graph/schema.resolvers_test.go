@@ -12,8 +12,8 @@ import (
 	"github.com/nhe23/aq-api/mocks"
 )
 
-var locResService *mocks.LocResService = new(mocks.LocResService)
-var countriesService *mocks.CountriesSerivce = new(mocks.CountriesSerivce)
+var locResService *mocks.MeasurementsService = new(mocks.MeasurementsService)
+var countriesService *mocks.CountriesService = new(mocks.CountriesService)
 var citiesService *mocks.CitiesSerivce = new(mocks.CitiesSerivce)
 var take int = 1
 var after string = "mock"
@@ -23,7 +23,7 @@ var c *client.Client = client.New(handler.NewDefaultServer(generated.NewExecutab
 		CitiesService:     citiesService,
 		CountriesSerivce:  countriesService}})))
 
-func Test_queryResolver_LocationResults(t *testing.T) {
+func Test_queryResolver_Measurements(t *testing.T) {
 	take := 1
 	after := "mock"
 	location := model.LocationResult{ID: "test"}
@@ -52,7 +52,7 @@ func Test_queryResolver_LocationResults(t *testing.T) {
 			r := &queryResolver{
 				Resolver: tt.fields.Resolver,
 			}
-			got, err := r.LocationResults(tt.args.ctx, tt.args.take, tt.args.after)
+			got, err := r.Measurements(tt.args.ctx, tt.args.take, tt.args.after)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("queryResolver.LocationResults() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -135,6 +135,92 @@ func Test_queryResolver_Cities(t *testing.T) {
 			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("queryResolver.Cities() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_queryResolver_MeasurementsByCountry(t *testing.T) {
+	take := 1
+	after := "mock"
+	location := model.LocationResult{ID: "test"}
+	locations := []*model.LocationResult{&location}
+	country := "DE"
+	locResService.On("GetResultsByCountry", country, &take, &after).Return(locations, nil)
+	resolver := &Resolver{LocResultsService: locResService}
+	type fields struct {
+		Resolver *Resolver
+	}
+	type args struct {
+		ctx     context.Context
+		country string
+		take    *int
+		after   *string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    []*model.LocationResult
+		wantErr bool
+	}{
+		{"standard", fields{resolver}, args{context.TODO(), country, &take, &after}, locations, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := &queryResolver{
+				Resolver: tt.fields.Resolver,
+			}
+			got, err := r.MeasurementsByCountry(tt.args.ctx, tt.args.country, tt.args.take, tt.args.after)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("queryResolver.MeasurementsByCountry() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("queryResolver.MeasurementsByCountry() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func Test_queryResolver_MeasurementsByCity(t *testing.T) {
+	take := 1
+	after := "mock"
+	city := "Paris"
+	location := model.LocationResult{ID: "test"}
+	locations := []*model.LocationResult{&location}
+	locResService.On("GetResultsByCity", city, &take, &after).Return(locations, nil)
+	resolver := &Resolver{LocResultsService: locResService}
+	type fields struct {
+		Resolver *Resolver
+	}
+	type args struct {
+		ctx   context.Context
+		city  string
+		take  *int
+		after *string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    []*model.LocationResult
+		wantErr bool
+	}{
+		{"standard", fields{resolver}, args{context.TODO(), city, &take, &after}, locations, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := &queryResolver{
+				Resolver: tt.fields.Resolver,
+			}
+			got, err := r.MeasurementsByCity(tt.args.ctx, tt.args.city, tt.args.take, tt.args.after)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("queryResolver.MeasurementsByCity() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("queryResolver.MeasurementsByCity() = %v, want %v", got, tt.want)
 			}
 		})
 	}

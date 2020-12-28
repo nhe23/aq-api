@@ -17,7 +17,7 @@ func NewLoggingService(logger log.Logger, s Service) Service {
 	return &loggingService{logger, s}
 }
 
-func (s *loggingService) GetCountries() (cities []*model.Country, err error) {
+func (s *loggingService) GetCountries() (countries []*model.Country, err error) {
 	defer func(begin time.Time) {
 		s.logger.Log(
 			"method", "GetCountries",
@@ -26,4 +26,26 @@ func (s *loggingService) GetCountries() (cities []*model.Country, err error) {
 		)
 	}(time.Now())
 	return s.Service.GetCountries()
+}
+
+func (s *loggingService) GetCountry(countryCode string) (country *model.Country, err error) {
+	defer func(begin time.Time) {
+		s.logger.Log(
+			"method", "GetCountry",
+			"took", time.Since(begin),
+			"err", err,
+		)
+	}(time.Now())
+	return s.Service.GetCountry(countryCode)
+}
+
+func (s *loggingService) GetCountryByCodes(countryCodes []string) (country []*model.Country, err error) {
+	defer func(begin time.Time) {
+		s.logger.Log(
+			"method", "GetCountryByCodes",
+			"took", time.Since(begin),
+			"err", err,
+		)
+	}(time.Now())
+	return s.Service.GetCountryByCodes(countryCodes)
 }

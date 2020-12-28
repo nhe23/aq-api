@@ -2,40 +2,35 @@
 
 package model
 
+import (
+	"time"
+)
+
 type City struct {
-	ID        string `json:"_id" bson:"_id"`
-	Name      string `json:"name" bson:"name"`
-	Country   string `json:"country" bson:"country"`
-	Count     int    `json:"count" bson:"count"`
-	Locations int    `json:"locations" bson:"locations"`
+	ID        string `json:"_id"`
+	Name      string `json:"name"`
+	Country   string `json:"country"`
+	Count     int    `json:"count"`
+	Locations int    `json:"locations"`
 }
 
 type Coordinates struct {
-	Latitude  float64 `json:"latitude" bson:"latitude"`
-	Longitude float64 `json:"longitude" bson:"longitude"`
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
 }
 
 type Country struct {
-	ID        string `json:"_id" bson:"_id"`
-	Code      string `json:"code" bson:"code"`
-	Name      string `json:"name" bson:"name"`
-	Count     int    `json:"count" bson:"count"`
-	Cities    int    `json:"cities" bson:"cities"`
-	Locations int    `json:"locations" bson:"locations"`
-}
-
-type LocationResult struct {
-	ID           string         `json:"_id" bson:"_id"`
-	Location     string         `json:"location" bson:"location"`
-	City         string         `json:"city" bson:"city"`
-	Country      string         `json:"country" bson:"country"`
-	Measurements []*Measurement `json:"measurements" bson:"measurements"`
-	Coordinates  *Coordinates   `json:"coordinates" bson:"coordinates"`
+	ID        string `json:"_id"`
+	Code      string `json:"code"`
+	Name      string `json:"name"`
+	Count     int    `json:"count"`
+	Cities    int    `json:"cities"`
+	Locations int    `json:"locations"`
 }
 
 type Measurement struct {
-	Parameter   string  `json:"parameter" bson:"parameter"`
-	Value       int     `json:"value" bson:"value"`
-	LastUpdated float64 `json:"lastUpdated" bson:"lastUpdated"`
-	Unit        string  `json:"unit" bson:"unit"`
+	Parameter   string    `json:"parameter"`
+	Value       int       `json:"value"`
+	LastUpdated time.Time `json:"lastUpdated"`
+	Unit        string    `json:"unit"`
 }
