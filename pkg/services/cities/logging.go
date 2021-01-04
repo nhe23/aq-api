@@ -29,3 +29,15 @@ func (s *loggingService) GetCities(take *int, after *string) (cities []*model.Ci
 	}(time.Now())
 	return s.Service.GetCities(take, after)
 }
+
+func (s *loggingService) CitiesStartsWith(searchString string) (cities []*model.City, err error) {
+	defer func(begin time.Time) {
+		s.logger.Log(
+			"method", "GetCities",
+			"searchstring", searchString,
+			"took", time.Since(begin),
+			"err", err,
+		)
+	}(time.Now())
+	return s.Service.CitiesStartsWith(searchString)
+}

@@ -225,3 +225,42 @@ func Test_queryResolver_MeasurementsByCity(t *testing.T) {
 		})
 	}
 }
+
+func Test_queryResolver_CitiesStartsWith(t *testing.T) {
+	city := model.City{ID: "test", Name: "MockCity"}
+	cities := []*model.City{&city}
+	searchString := "Mock"
+	citiesService.On("CitiesStartsWith", searchString).Return(cities, nil)
+	resolver := &Resolver{CitiesService: citiesService}
+	type fields struct {
+		Resolver *Resolver
+	}
+	type args struct {
+		ctx          context.Context
+		searchString string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    []*model.City
+		wantErr bool
+	}{
+		{"standard", fields{resolver}, args{context.TODO(), searchString}, cities, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := &queryResolver{
+				Resolver: tt.fields.Resolver,
+			}
+			got, err := r.CitiesStartsWith(tt.args.ctx, tt.args.searchString)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("queryResolver.CitiesStartsWith() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("queryResolver.CitiesStartsWith() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

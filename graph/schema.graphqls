@@ -27,6 +27,7 @@ type Measurement {
   value: Int!
   lastUpdated: Time!
   unit: String!
+  qualityIndex: Int!
 }
 
 type Coordinates {
@@ -57,4 +58,5 @@ type Query {
   measurementsByCity(city: String!, take:Int, after:String): [LocationResult!]!
   countries: [Country!]!
   cities(take:Int, after:String): [City!]!
+  citiesStartsWith(searchString:String!): [City!]!
 }

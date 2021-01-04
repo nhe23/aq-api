@@ -34,6 +34,10 @@ func (r *queryResolver) Cities(ctx context.Context, take *int, after *string) ([
 	return r.CitiesService.GetCities(take, after)
 }
 
+func (r *queryResolver) CitiesStartsWith(ctx context.Context, searchString string) ([]*model.City, error) {
+	return r.CitiesService.CitiesStartsWith(searchString)
+}
+
 // LocationResult returns generated.LocationResultResolver implementation.
 func (r *Resolver) LocationResult() generated.LocationResultResolver {
 	return &locationResultResolver{r}
